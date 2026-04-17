@@ -381,22 +381,30 @@ function DrawsTab() {
 }
 
 function WinnersTab() {
-  const [winners, setWinners] = useState<(WinnerRow & { profile?: ProfileRow })[]>([]);
+  const [winners, setWinners] = useState<(WinnerRow & { profile?: ProfileRow | null })[]>([]);
   useEffect(() => { reload(); }, []);
   async function reload() {
-    const { data } = await supabase.from("winners").select("*, profile:profiles!winners_user_id_fkey(id,email,full_name)").order("created_at", { ascending: false });
-    setWinners((data as (WinnerRow & { profile?: ProfileRow })[]) ?? []);
+    const { data: ws } = await supabase.from("winners").select("*").order("created_at", { ascending: false });
+    const list = (ws ?? []) as unknown as WinnerRow[];
+    const userIds = Array.from(new Set(list.map(w => w.user_id)));
+    const profilesRes = userIds.length
+      ? await supabase.from("profiles").select("id,email,full_name,charity_id,charity_percentage").in("id", userIds)
+      : { data: [] as ProfileRow[] };
+    const map = new Map<string, ProfileRow>();
+    ((profilesRes.data ?? []) as unknown as ProfileRow[]).forEach(p => map.set(p.id, p));
+    setWinners(list.map(w => ({ ...w, profile: map.get(w.user_id) ?? null })));
   }
   async function viewProof(path: string) {
     const { data, error } = await supabase.storage.from("verifications").createSignedUrl(path, 60);
     if (error || !data) { toast.error("Could not load proof"); return; }
     window.open(data.signedUrl, "_blank", "noopener");
   }
-  async function update(id: string, status: string, paid = false) {
-    const patch: { status: string; verified_at?: string; paid_at?: string } = { status };
+  async function update(id: string, status: "verified" | "rejected" | "paid", paid = false) {
+    const patch: Record<string, string> = { status };
     if (status === "verified") patch.verified_at = new Date().toISOString();
     if (paid) patch.paid_at = new Date().toISOString();
-    const { error } = await supabase.from("winners").update(patch).eq("id", id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await supabase.from("winners").update(patch as any).eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success("Updated");
     reload();
