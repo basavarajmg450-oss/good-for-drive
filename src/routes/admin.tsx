@@ -75,8 +75,8 @@ function ReportsTab() {
       supabase.from("subscriptions").select("amount_cents", { count: "exact" }).eq("status", "active"),
       supabase.from("draws").select("prize_pool_cents", { count: "exact" }),
     ]).then(([u, s, d]) => {
-      const totalSubs = (s.data ?? []).reduce((sum, r: { amount_cents: number }) => sum + r.amount_cents, 0);
-      const totalPool = (d.data ?? []).reduce((sum, r: { prize_pool_cents: number }) => sum + r.prize_pool_cents, 0);
+      const totalSubs = (s.data ?? []).reduce((sum, r) => sum + (r.amount_cents ?? 0), 0);
+      const totalPool = (d.data ?? []).reduce((sum, r) => sum + (r.prize_pool_cents ?? 0), 0);
       setStats({
         users: u.count ?? 0,
         activeSubs: s.count ?? 0,
