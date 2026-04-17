@@ -120,13 +120,15 @@ function UsersTab() {
     ((s as SubRow[]) ?? []).forEach(r => { map[r.user_id] = r; });
     setSubs(map);
   }
-  async function setStatus(userId: string, status: string) {
+  async function setStatus(userId: string, status: "active" | "lapsed" | "cancelled" | "pending") {
     const existing = subs[userId];
     if (!existing) {
-      const { error } = await supabase.from("subscriptions").insert({ user_id: userId, plan: "monthly", status, amount_cents: 800 });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await supabase.from("subscriptions").insert({ user_id: userId, plan: "monthly", status, amount_cents: 800 } as any);
       if (error) toast.error(error.message); else toast.success("Subscription created");
     } else {
-      const { error } = await supabase.from("subscriptions").update({ status }).eq("user_id", userId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await supabase.from("subscriptions").update({ status } as any).eq("user_id", userId);
       if (error) toast.error(error.message); else toast.success("Updated");
     }
     reload();
