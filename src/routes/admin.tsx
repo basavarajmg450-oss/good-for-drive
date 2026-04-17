@@ -323,7 +323,8 @@ function DrawsTab() {
     if (tiers.match_4.length > 0) tiers.match_4.forEach(uid => inserts.push({ draw_id: d.id, user_id: uid, tier: "match_4", prize_cents: Math.floor(pool4 / tiers.match_4.length) }));
     if (tiers.match_3.length > 0) tiers.match_3.forEach(uid => inserts.push({ draw_id: d.id, user_id: uid, tier: "match_3", prize_cents: Math.floor(pool3 / tiers.match_3.length) }));
     if (inserts.length > 0) {
-      const { error } = await supabase.from("winners").insert(inserts);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await supabase.from("winners").insert(inserts as any);
       if (error) { toast.error(error.message); return; }
     }
     await supabase.from("draws").update({ status: "published", published_at: new Date().toISOString(), jackpot_rollover_cents: jackpotRollover }).eq("id", d.id);
