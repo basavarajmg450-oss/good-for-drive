@@ -109,6 +109,21 @@ function Dashboard() {
           <StatusCard icon={<Heart />} label="Charity" value={charity?.name ?? "Not set"} />
           <StatusCard icon={<Trophy />} label="Wins" value={String(winners.length)} />
         </div>
+        {!subActive && (
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="mt-6 p-4 rounded-2xl bg-accent/10 border border-accent/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="h-5 w-5 text-accent" />
+              <div className="text-sm text-balance">
+                <span className="font-semibold text-foreground">You're not currently entered in draws.</span>
+                <p className="text-muted-foreground">Start your subscription to enter this month's prize pool.</p>
+              </div>
+            </div>
+            <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 shrink-0">
+              <Link to="/pricing">View Plans</Link>
+            </Button>
+          </motion.div>
+        )}
 
         <Tabs defaultValue="overview" className="mt-10">
           <TabsList className="bg-card border border-border">
@@ -299,9 +314,30 @@ function CharityTab({ profile, charities, onChange }: { profile: Profile | null;
           </div>
           <Slider min={10} max={100} step={5} value={[pct]} onValueChange={(v) => setPct(v[0])} />
         </div>
-        <Button onClick={save} disabled={saving} className="bg-foreground text-background hover:bg-foreground/90">
-          {saving ? "Saving…" : "Save preferences"}
-        </Button>
+        <div className="pt-4 mt-6 border-t border-border">
+          <h4 className="text-sm font-semibold">One-off support</h4>
+          <p className="text-xs text-muted-foreground mt-1">Make an independent donation to {charity?.name || 'your chosen cause'}.</p>
+          <Button variant="outline" size="sm" className="mt-3" onClick={async () => {
+             const { data: u } = await supabase.auth.getUser();
+             if (!u.user || !charityId) return;
+             // Here we would normally trigger a Stripe one-time payment,
+             // but for this demo we'll just log it to the contributions table.
+             const { error } = await supabase.from('donations').insert({
+               user_id: u.user.id,
+               charity_id: charityId,
+               amount_cents: 500 // £5
+             });
+             if (error) toast.error(error.message);
+             else toast.success("£5.00 donation logged for " + (charity?.name || 'charity'));
+          }}>
+            Donate £5.00 once
+          </Button>
+        </div>
+        <div className="pt-6">
+          <Button onClick={save} disabled={saving} className="bg-foreground text-background hover:bg-foreground/90 w-full sm:w-auto">
+            {saving ? "Saving…" : "Save preferences"}
+          </Button>
+        </div>
       </div>
     </div>
   );

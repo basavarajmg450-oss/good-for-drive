@@ -23,14 +23,31 @@ function Signup() {
   const [form, setForm] = useState({ full_name: "", email: "", password: "" });
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [charities, setCharities] = useState<{ id: string; name: string }[]>([]);
+  const [charityId, setCharityId] = useState("");
+
+  useState(() => {
+    supabase
+      .from("charities")
+      .select("id,name")
+      .order("name")
+      .then(({ data }) => setCharities(data || []));
+  });
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
     const parsed = schema.safeParse(form);
-    if (!parsed.success) { setErr(parsed.error.issues[0].message); return; }
+    if (!parsed.success) {
+      setErr(parsed.error.issues[0].message);
+      return;
+    }
+    if (!charityId) {
+      setErr("Please select a charity");
+      return;
+    }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
@@ -38,9 +55,26 @@ function Signup() {
         emailRedirectTo: `${window.location.origin}/dashboard`,
       },
     });
+
+    if (error) {
+      setErr(error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (signUpData.user) {
+      await supabase
+        .from("profiles")
+        .update({
+          charity_id: charityId,
+          charity_percentage: 10,
+          signup_complete: true,
+        })
+        .eq("id", signUpData.user.id);
+    }
+
     setLoading(false);
-    if (error) setErr(error.message);
-    else navigate({ to: "/dashboard" });
+    navigate({ to: "/dashboard" });
   }
 
   return (
@@ -60,6 +94,20 @@ function Signup() {
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="charity">Choose your initial charity</Label>
+            <select 
+              id="charity" 
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={charityId} 
+              onChange={(e) => setCharityId(e.target.value)} 
+              required
+            >
+              <option value="">Select a charity…</option>
+              {charities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <p className="text-[10px] text-muted-foreground italic">Minimum 10% of your subscription goes here. You can change this later.</p>
           </div>
           {err && <div className="text-sm text-destructive">{err}</div>}
           <Button type="submit" disabled={loading} className="w-full h-11 bg-foreground text-background hover:bg-foreground/90">

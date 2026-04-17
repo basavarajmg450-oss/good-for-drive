@@ -1,15 +1,21 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { PublicLayout } from "@/components/PublicLayout";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { createCheckoutSession } from "@/lib/stripe-functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/pricing")({
   component: Pricing,
-  head: () => ({ meta: [
-    { title: "Pricing — Birdie subscriptions" },
-    { name: "description", content: "Monthly £8 or yearly £80 (save 17%). Cancel anytime. 10% minimum to charity." },
-  ]}),
+  head: () => ({
+    meta: [
+      { title: "Pricing — Birdie subscriptions" },
+      { name: "description", content: "Monthly £8 or yearly £80 (save 17%). Cancel anytime. 10% minimum to charity." },
+    ],
+  }),
 });
 
 const PERKS = [
@@ -19,8 +25,39 @@ const PERKS = [
   "10% min subscription → charity",
   "Cancel anytime",
 ];
-
 function Pricing() {
+  const { session } = useAuth();
+  const [loading, setLoading] = useState<string | null>(null);
+
+  async function handleSubscribe(plan: string) {
+    if (!session) {
+      window.location.href = "/signup";
+      return;
+    }
+
+    setLoading(plan);
+    try {
+      const priceId =
+        plan === "Monthly"
+          ? import.meta.env.VITE_STRIPE_MONTHLY_PRICE_ID
+          : import.meta.env.VITE_STRIPE_YEARLY_PRICE_ID;
+
+      const { url } = await createCheckoutSession({
+        data: {
+          priceId,
+          userId: session.user.id,
+          email: session.user.email!,
+        },
+      });
+
+      if (url) window.location.href = url;
+    } catch (err: any) {
+      toast.error(err.message || "Failed to start checkout");
+    } finally {
+      setLoading(null);
+    }
+  }
+
   return (
     <PublicLayout>
       <section className="mx-auto max-w-5xl px-5 sm:px-8 pt-16 sm:pt-24 pb-12 text-center">
@@ -59,8 +96,13 @@ function Pricing() {
                 ))}
               </ul>
 
-              <Button asChild size="lg" className={`mt-8 w-full h-12 ${p.featured ? "bg-accent text-accent-foreground hover:bg-accent/90" : "bg-foreground text-background hover:bg-foreground/90"}`}>
-                <Link to="/signup">Choose {p.plan.toLowerCase()}</Link>
+              <Button 
+                onClick={() => handleSubscribe(p.plan)}
+                disabled={loading === p.plan}
+                size="lg" 
+                className={`mt-8 w-full h-12 ${p.featured ? "bg-accent text-accent-foreground hover:bg-accent/90" : "bg-foreground text-background hover:bg-foreground/90"}`}
+              >
+                {loading === p.plan ? "Redirecting…" : `Choose ${p.plan.toLowerCase()}`}
               </Button>
             </motion.div>
           ))}

@@ -150,7 +150,14 @@ function UsersTab() {
                 <td className="p-3">{u.charity_percentage}%</td>
                 <td className="p-3 flex gap-1">
                   <Button size="sm" variant="outline" onClick={() => setStatus(u.id, "active")}>Activate</Button>
-                  <Button size="sm" variant="ghost" onClick={() => setStatus(u.id, "lapsed")}>Lapse</Button>
+                  <Button size="sm" variant="ghost" onClick={async () => {
+                    const newName = prompt("Enter new name for " + u.email, u.full_name || "");
+                    if (newName !== null) {
+                      const { error } = await supabase.from("profiles").update({ full_name: newName }).eq("id", u.id);
+                      if (error) toast.error(error.message); else { toast.success("Updated"); reload(); }
+                    }
+                  }}>Edit</Button>
+                  <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setStatus(u.id, "lapsed")}>Lapse</Button>
                 </td>
               </tr>
             ))}
