@@ -339,12 +339,17 @@ function WinningsTab({ winners, onChange }: { winners: Winner[]; onChange: () =>
     const path = `${u.user.id}/${winnerId}-${Date.now()}-${file.name}`;
     const { error: upErr } = await supabase.storage.from("verifications").upload(path, file, { upsert: true });
     if (upErr) { toast.error(upErr.message); setUploading(null); return; }
-    const { data: pub } = supabase.storage.from("verifications").getPublicUrl(path);
-    const { error } = await supabase.from("winners").update({ verification_url: pub.publicUrl, status: "pending" }).eq("id", winnerId);
+    const { error } = await supabase.from("winners").update({ verification_url: path, status: "pending" }).eq("id", winnerId);
     setUploading(null);
     if (error) { toast.error(error.message); return; }
     toast.success("Proof uploaded — awaiting verification");
     onChange();
+  }
+
+  async function viewProof(path: string) {
+    const { data, error } = await supabase.storage.from("verifications").createSignedUrl(path, 60);
+    if (error || !data) { toast.error("Could not load proof"); return; }
+    window.open(data.signedUrl, "_blank", "noopener");
   }
 
   if (winners.length === 0) {
@@ -375,9 +380,9 @@ function WinningsTab({ winners, onChange }: { winners: Winner[]; onChange: () =>
             </label>
           )}
           {w.verification_url && (
-            <a href={w.verification_url} target="_blank" rel="noreferrer" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+            <button onClick={() => viewProof(w.verification_url!)} className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
               View proof <ExternalLink className="h-3 w-3" />
-            </a>
+            </button>
           )}
         </div>
       ))}
