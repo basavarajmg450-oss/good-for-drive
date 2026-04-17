@@ -1,10 +1,12 @@
 import Stripe from "stripe";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("Missing STRIPE_SECRET_KEY");
+const stripeSecretKey = import.meta.env.VITE_STRIPE_SECRET_KEY || process.env.VITE_STRIPE_SECRET_KEY;
+
+if (!stripeSecretKey) {
+  throw new Error("Missing VITE_STRIPE_SECRET_KEY");
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+export const stripe = new Stripe(stripeSecretKey, {
   apiVersion: "2023-10-16" as any,
   appInfo: {
     name: "Birdie Golf Charity",

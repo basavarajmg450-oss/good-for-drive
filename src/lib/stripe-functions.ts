@@ -15,8 +15,8 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         },
       ],
       mode: "subscription",
-      success_url: `${process.env.APP_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.APP_URL}/pricing`,
+      success_url: `${import.meta.env.VITE_APP_URL || process.env.VITE_APP_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${import.meta.env.VITE_APP_URL || process.env.VITE_APP_URL}/pricing`,
       customer_email: data.email,
       metadata: {
         userId: data.userId,
@@ -31,7 +31,7 @@ export const createPortalSession = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const session = await stripe.billingPortal.sessions.create({
       customer: data.customerId,
-      return_url: `${process.env.APP_URL}/dashboard`,
+      return_url: `${import.meta.env.VITE_APP_URL || process.env.VITE_APP_URL}/dashboard`,
     });
 
     return { url: session.url };

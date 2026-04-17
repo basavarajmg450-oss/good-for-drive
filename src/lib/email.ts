@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const resend = (import.meta.env.VITE_RESEND_API_KEY || process.env.VITE_RESEND_API_KEY) ? new Resend(import.meta.env.VITE_RESEND_API_KEY || process.env.VITE_RESEND_API_KEY) : null;
 
 export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
   if (!resend) {
