@@ -13,6 +13,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CharitiesRouteImport } from './routes/charities'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -36,6 +37,11 @@ const LoginRoute = LoginRouteImport.update({
 const HowItWorksRoute = HowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CharitiesRoute = CharitiesRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/charities': typeof CharitiesRouteWithChildren
+  '/dashboard': typeof DashboardRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/charities': typeof CharitiesRouteWithChildren
+  '/dashboard': typeof DashboardRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/charities': typeof CharitiesRouteWithChildren
+  '/dashboard': typeof DashboardRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/charities'
+    | '/dashboard'
     | '/how-it-works'
     | '/login'
     | '/pricing'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/charities'
+    | '/dashboard'
     | '/how-it-works'
     | '/login'
     | '/pricing'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/charities'
+    | '/dashboard'
     | '/how-it-works'
     | '/login'
     | '/pricing'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   CharitiesRoute: typeof CharitiesRouteWithChildren
+  DashboardRoute: typeof DashboardRoute
   HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/how-it-works'
       fullPath: '/how-it-works'
       preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/charities': {
@@ -210,6 +230,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   CharitiesRoute: CharitiesRouteWithChildren,
+  DashboardRoute: DashboardRoute,
   HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
