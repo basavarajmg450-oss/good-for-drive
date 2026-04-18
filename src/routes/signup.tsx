@@ -68,7 +68,6 @@ function Signup() {
         .update({
           charity_id: charityId,
           charity_percentage: 10,
-          signup_complete: true,
         })
         .eq("id", signUpData.user.id);
     }

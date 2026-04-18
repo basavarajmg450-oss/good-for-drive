@@ -275,6 +275,7 @@ function CharityTab({ profile, charities, onChange }: { profile: Profile | null;
   const [charityId, setCharityId] = useState(profile?.charity_id ?? "");
   const [pct, setPct] = useState(profile?.charity_percentage ?? 10);
   const [saving, setSaving] = useState(false);
+  const charity = charities.find(c => c.id === charityId);
 
   useEffect(() => { if (profile) { setCharityId(profile.charity_id ?? ""); setPct(profile.charity_percentage); } }, [profile]);
 
